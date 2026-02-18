@@ -1,4 +1,4 @@
-# CookbookAI
+# GameLog
 
 Track your gaming journey - log games you've played and plan to play.
 
