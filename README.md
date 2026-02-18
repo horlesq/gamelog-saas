@@ -1,6 +1,8 @@
-<h1 align="center">🎮 GameLog</h1>
+# CookbookAI
 
 Track your gaming journey - log games you've played and plan to play.
+
+<img width="1516" height="930" alt="image" src="https://github.com/user-attachments/assets/50df1fb7-24f2-4bba-b74b-a82787bb0103" />
 
 
 ## Features
