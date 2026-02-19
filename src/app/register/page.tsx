@@ -14,11 +14,12 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { loginUser } from "@/lib/auth/client";
+import { registerUser } from "@/lib/auth/client";
 
-export default function LoginPage() {
+export default function RegisterPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const router = useRouter();
@@ -28,13 +29,19 @@ export default function LoginPage() {
         setLoading(true);
         setError("");
 
-        try {
-            await loginUser({ email, password });
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            setLoading(false);
+            return;
+        }
 
-            // Redirect to dashboard on success
+        try {
+            await registerUser({ email, password });
             router.push("/dashboard");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Login failed");
+            setError(
+                err instanceof Error ? err.message : "Registration failed",
+            );
         } finally {
             setLoading(false);
         }
@@ -56,7 +63,7 @@ export default function LoginPage() {
                         <span>GameLog</span>
                     </CardTitle>
                     <CardDescription className="text-center text-sm sm:text-base">
-                        Sign in to track your gaming journey
+                        Create an account to start tracking
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="px-4 sm:px-6">
@@ -68,7 +75,7 @@ export default function LoginPage() {
                             <Input
                                 id="email"
                                 type="email"
-                                placeholder="admin@email.com"
+                                placeholder="name@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -82,10 +89,31 @@ export default function LoginPage() {
                             <Input
                                 id="password"
                                 type="password"
-                                placeholder="Enter your password"
+                                placeholder="Aa1@... (min 8 chars)"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
+                                minLength={8}
+                                className="h-10 sm:h-10 bg-muted"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label
+                                htmlFor="confirmPassword"
+                                className="text-sm"
+                            >
+                                Confirm Password
+                            </Label>
+                            <Input
+                                id="confirmPassword"
+                                type="password"
+                                placeholder="Re-enter your password"
+                                value={confirmPassword}
+                                onChange={(e) =>
+                                    setConfirmPassword(e.target.value)
+                                }
+                                required
+                                minLength={6}
                                 className="h-10 sm:h-10 bg-muted"
                             />
                         </div>
@@ -99,16 +127,16 @@ export default function LoginPage() {
                             className="w-full h-10 sm:h-10"
                             disabled={loading}
                         >
-                            {loading ? "Signing in..." : "Sign in"}
+                            {loading ? "Creating account..." : "Create account"}
                         </Button>
                     </form>
                     <div className="mt-4 text-sm text-muted-foreground text-center">
-                        Don&apos;t have an account?{" "}
+                        Already have an account?{" "}
                         <Link
-                            href="/register"
+                            href="/login"
                             className="text-primary hover:underline ml-1"
                         >
-                            Create one
+                            Sign in
                         </Link>
                     </div>
                 </CardContent>

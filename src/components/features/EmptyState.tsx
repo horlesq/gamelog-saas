@@ -28,7 +28,7 @@ export default function EmptyState({
             {!search && statusFilter === "all" && (
                 <Button
                     onClick={onAddGame}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className="bg-secondary hover:bg-primary/80 text-white"
                 >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Your First Game
