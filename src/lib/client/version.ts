@@ -15,6 +15,13 @@ export class VersionClient {
         try {
             const response = await fetch("/api/admin/version");
 
+            if (response.status === 401) {
+                return {
+                    currentVersion: "0.1.0",
+                    hasUpdate: false,
+                };
+            }
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

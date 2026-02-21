@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Orbitron, Exo_2 } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/components/theme/Providers";
+import { Providers } from "@/components/providers/Providers";
 
 const orbitron = Orbitron({
     variable: "--font-orbitron",
