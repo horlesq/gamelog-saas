@@ -1,0 +1,19 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        # Override the production command for development
+        command: sh -c "npx prisma generate && npx prisma db push && npm run dev"
+        ports:
+            - "3000:3000"
+        volumes:
+            - .:/app
+            # Preserve node_modules even if mounting local files
+            - /app/node_modules
+            - ./data:/app/data
+        environment:
+            - DATABASE_URL=file:/app/data/gamelog.db
+            - NODE_ENV=development
+            - RAWG_API_KEY=e382f4f975d54f0da37beaac4a432239
+        restart: unless-stopped

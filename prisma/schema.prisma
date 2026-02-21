@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  name      String?
+  isAdmin   Boolean   @default(false)
+  gameLogs  GameLog[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Game {
+  id              String    @id @default(cuid())
+  rawgId          Int       @unique
+  name            String
+  slug            String?
+  backgroundImage String?
+  released        String?
+  metacritic      Int?
+  genres          String?
+  platforms       String?
+  gameLogs        GameLog[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("games")
+}
+
+model GameLog {
+  id          String     @id @default(cuid())
+  status      GameStatus @default(PLAN_TO_PLAY)
+  rating      Int?
+  hoursPlayed Float?
+  platforms   String? // JSON array of strings
+  notes       String?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  gameId    String
+  game      Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([gameId, userId])
+  @@map("game_logs")
+}
+
+enum GameStatus {
+  PLAN_TO_PLAY
+  PLAYING
+  COMPLETED
+}
