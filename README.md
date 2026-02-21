@@ -2,7 +2,7 @@
 
 Track your gaming journey - log games you've played and plan to play.
 
-<img width="1516" height="930" alt="image" src="https://github.com/user-attachments/assets/50df1fb7-24f2-4bba-b74b-a82787bb0103" />
+<img width="1294" height="924" alt="image" src="https://github.com/user-attachments/assets/6400fd6d-f4b0-4add-883a-8b988b306b18" />
 
 
 ## Features
