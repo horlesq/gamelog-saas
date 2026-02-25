@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, ChevronRight, Github, LogIn, ArrowRight } from "lucide-react";
+import { Menu, X, ChevronRight, Github, LogIn, ArrowRight, BadgeQuestionMark, Info, Tag, Component } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function LandingNavbar() {
@@ -129,44 +129,77 @@ export default function LandingNavbar() {
                         }`}
                     >
                         <div className="px-4 py-4 space-y-2">
-                            <Link
-                                href="#features"
-                                onClick={() => setMobileMenuOpen(false)}
-                                className="block px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-xl transition-colors"
+                            <Button
+                                asChild
+                                variant="outline"
+                                className="w-full justify-start"
                             >
-                                Features
-                            </Link>
-                            <Link
-                                href="#pricing"
-                                onClick={() => setMobileMenuOpen(false)}
-                                className="block px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-xl transition-colors"
+                                <Link
+                                    href="#features"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <Component className="size-4" />
+                                        <span>Features</span>
+                                    </div>
+                                </Link>
+                            </Button>
+
+                            <Button
+                                asChild
+                                variant="outline"
+                                className="w-full justify-start"
                             >
-                                Pricing
-                            </Link>
-                            <Link
-                                href="#faq"
-                                onClick={() => setMobileMenuOpen(false)}
-                                className="block px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-xl transition-colors"
+                                <Link
+                                    href="#pricing"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <Tag className="size-4" />
+                                        <span>Pricing</span>
+                                    </div>
+                                </Link>
+                            </Button>
+
+                            <Button
+                                asChild
+                                variant="outline"
+                                className="w-full justify-start"
                             >
-                                Questions
-                            </Link>
-                            <Link
-                                href="https://github.com/horlesq/gamelog"
-                                target="_blank"
-                                onClick={() => setMobileMenuOpen(false)}
-                                className="flex items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-xl transition-colors"
+                                <Link
+                                    href="#faq"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    
+                                    <div className="flex items-center space-x-2">
+                                        <Info className="size-4" />
+                                        <span>Questions</span>
+                                    </div>
+                                </Link>
+                            </Button>
+
+                            <Button
+                                asChild
+                                variant="outline"
+                                className="w-full justify-start"
                             >
-                                <div className="flex items-center space-x-2">
-                                    <Github className="size-4" />
-                                    <span>GitHub</span>
-                                </div>
-                                <ChevronRight className="size-4 opacity-50" />
-                            </Link>
+                                <Link
+                                    href="https://github.com/horlesq/gamelog"
+                                    target="_blank"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <Github className="size-4" />
+                                        <span>GitHub</span>
+                                    </div>
+                                </Link>
+                            </Button>
+
                             <div className="grid grid-cols-2 gap-3 pt-2">
                                 <Button
-                                    variant="glass"
+                                    variant="default"
                                     asChild
-                                    className="w-full"
+                                    className="w-full bg-accent/30 border-accent/30 hover:bg-accent/50 hover:border-accent/50"
                                 >
                                     <Link href="/login">
                                         <LogIn className="size-4" />
@@ -175,7 +208,7 @@ export default function LandingNavbar() {
                                 </Button>
                                 <Button
                                     asChild
-                                    variant="premiumAccent"
+                                    variant="default"
                                     className="w-full"
                                 >
                                     <Link href="/register">
