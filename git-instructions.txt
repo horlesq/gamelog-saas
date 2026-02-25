@@ -1,4 +1,8 @@
+# Sync OSS changes INTO this SaaS repo
 git fetch oss
-git merge oss/main
-# resolve any conflicts (your SaaS files vs OSS changes)
-git push origin main
+git merge oss/main --allow-unrelated-histories
+# Resolve any conflicts (SaaS-specific files vs OSS changes)
+git push origin main   # pushes only to gamelog-saas (private)
+
+# NOTE: pushing to `oss` remote is intentionally disabled.
+# To publish changes to OSS, cherry-pick or patch them manually from the OSS repo.

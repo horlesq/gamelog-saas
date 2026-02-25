@@ -139,3 +139,32 @@
         font-family: var(--font-orbitron), system-ui, sans-serif;
     }
 }
+
+/* ── Hero floating animations ── */
+@keyframes float-slow {
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes float-reverse {
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(16px);
+    }
+}
+
+.animate-float-slow {
+    animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+    animation: float-reverse 5s ease-in-out infinite;
+}

@@ -3,6 +3,7 @@
 import React from "react";
 import { UpdateProvider, useUpdate } from "@/contexts/UpdateContext";
 import UpdateConfirmationModal from "@/components/features/UpdateConfirmationModal";
+import { ReactLenis } from "lenis/react";
 
 function UpdateModalContainer() {
     const { showConfirmDialog, hideConfirmDialog, updateInfo, executeUpdate } =
@@ -22,9 +23,11 @@ function UpdateModalContainer() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
-        <UpdateProvider>
-            {children}
-            <UpdateModalContainer />
-        </UpdateProvider>
+        <ReactLenis root>
+            <UpdateProvider>
+                {children}
+                <UpdateModalContainer />
+            </UpdateProvider>
+        </ReactLenis>
     );
 }
