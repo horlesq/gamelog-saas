@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,9 @@ import {
     Shield,
     Gamepad2,
     ArrowLeft,
-    ExternalLink,
     Loader2,
     CheckCircle2,
+    X,
 } from "lucide-react";
 
 interface SubscriptionInfo {
@@ -73,24 +73,54 @@ function BillingContent() {
     );
     const [loading, setLoading] = useState(true);
     const [upgrading, setUpgrading] = useState<string | null>(null);
+    const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
     const showSuccess = searchParams.get("success") === "true";
 
-    useEffect(() => {
-        async function fetchSubscription() {
-            try {
-                const res = await fetch("/api/subscription/status");
-                if (res.ok) {
-                    const data = await res.json();
-                    setSubscription(data);
-                }
-            } catch (error) {
-                console.error("Failed to fetch subscription:", error);
-            } finally {
-                setLoading(false);
+    const fetchSubscription = useCallback(async () => {
+        try {
+            const res = await fetch("/api/subscription/status");
+            if (res.ok) {
+                const data = await res.json();
+                setSubscription(data);
             }
+        } catch (error) {
+            console.error("Failed to fetch subscription:", error);
+        } finally {
+            setLoading(false);
         }
-        fetchSubscription();
     }, []);
+
+    useEffect(() => {
+        fetchSubscription();
+    }, [fetchSubscription]);
+
+    // Listen for messages from the Polar checkout iframe
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            // Polar sends a message when checkout is complete
+            if (
+                event.data === "polar:checkout:success" ||
+                event.data?.type === "polar:checkout:success"
+            ) {
+                setCheckoutUrl(null);
+                setUpgrading(null);
+                // Refresh subscription data
+                fetchSubscription();
+                // Update URL to show success
+                router.replace("/billing?success=true");
+            }
+            if (
+                event.data === "polar:checkout:close" ||
+                event.data?.type === "polar:checkout:close"
+            ) {
+                setCheckoutUrl(null);
+                setUpgrading(null);
+            }
+        };
+
+        window.addEventListener("message", handleMessage);
+        return () => window.removeEventListener("message", handleMessage);
+    }, [fetchSubscription, router]);
 
     const handleUpgrade = async (plan: "PRO" | "ULTRA") => {
         setUpgrading(plan);
@@ -106,12 +136,17 @@ function BillingContent() {
             }
 
             const data = await res.json();
-            // Redirect to Polar checkout
-            window.location.href = data.url;
+            // Open embedded checkout modal
+            setCheckoutUrl(data.url);
         } catch (error) {
             console.error("Upgrade error:", error);
             setUpgrading(null);
         }
+    };
+
+    const closeCheckout = () => {
+        setCheckoutUrl(null);
+        setUpgrading(null);
     };
 
     if (loading) {
@@ -266,10 +301,7 @@ function BillingContent() {
                                         {upgrading === "PRO" ? (
                                             <Loader2 className="size-4 animate-spin" />
                                         ) : (
-                                            <>
-                                                <span>Upgrade to Pro</span>
-                                                <ExternalLink className="size-3.5 ml-1.5" />
-                                            </>
+                                            <span>Upgrade to Pro</span>
                                         )}
                                     </Button>
                                 </div>
@@ -301,10 +333,7 @@ function BillingContent() {
                                     {upgrading === "ULTRA" ? (
                                         <Loader2 className="size-4 animate-spin" />
                                     ) : (
-                                        <>
-                                            <span>Upgrade to Ultra</span>
-                                            <ExternalLink className="size-3.5 ml-1.5" />
-                                        </>
+                                        <span>Upgrade to Ultra</span>
                                     )}
                                 </Button>
                             </div>
@@ -345,6 +374,43 @@ function BillingContent() {
                     </div>
                 )}
             </main>
+
+            {/* Embedded Checkout Modal */}
+            {checkoutUrl && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        onClick={closeCheckout}
+                    />
+
+                    {/* Modal */}
+                    <div className="relative w-full max-w-4xl mx-4 bg-background rounded-2xl border border-border/40 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
+                            <h3 className="text-lg font-semibold text-foreground">
+                                Complete Your Upgrade
+                            </h3>
+                            <button
+                                onClick={closeCheckout}
+                                className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <X className="size-5" />
+                            </button>
+                        </div>
+
+                        {/* Iframe */}
+                        <div className="w-full" style={{ height: "680px" }}>
+                            <iframe
+                                src={checkoutUrl}
+                                className="w-full h-full border-0"
+                                allow="payment"
+                                title="Polar Checkout"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

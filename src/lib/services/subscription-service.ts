@@ -83,12 +83,13 @@ export class SubscriptionService {
 
     /**
      * Create a Polar checkout session for upgrading a user's plan.
-     * Returns the checkout URL that the user should be redirected to.
+     * Returns the checkout URL that can be used for redirect or embedded in an iframe.
      */
     static async createCheckoutSession(
         userId: string,
         plan: "PRO" | "ULTRA",
         successUrl: string,
+        embedOrigin?: string,
     ): Promise<string> {
         const polar = getPolar();
         const productId = this.getProductIdForPlan(plan);
@@ -111,6 +112,7 @@ export class SubscriptionService {
             products: [productId],
             successUrl,
             customerEmail: user.email,
+            ...(embedOrigin && { embedOrigin }),
             metadata: {
                 userId,
                 plan,

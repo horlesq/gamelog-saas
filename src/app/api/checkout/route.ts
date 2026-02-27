@@ -4,7 +4,7 @@ import { SubscriptionService } from "@/lib/services/subscription-service";
 
 /**
  * Checkout API — creates a Polar checkout session for the authenticated user.
- * The frontend redirects the user to the returned URL.
+ * Returns the checkout URL for embedding in an iframe or redirect.
  */
 export async function POST(request: NextRequest) {
     try {
@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
             user.userId,
             plan,
             successUrl,
+            origin, // embedOrigin — allows the Polar iframe to communicate with our page
         );
 
         return NextResponse.json({ url: checkoutUrl });
