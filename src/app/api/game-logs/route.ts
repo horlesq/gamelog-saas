@@ -72,6 +72,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Handle plan limit reached
+        if (error instanceof Error && error.name === "PLAN_LIMIT_REACHED") {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
         // Handle unique constraint violation (game already logged)
         if (
             error instanceof Error &&

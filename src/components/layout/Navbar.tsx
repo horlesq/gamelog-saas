@@ -4,7 +4,15 @@ import { useState, forwardRef, useImperativeHandle } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut, Settings, Menu, X, LayoutDashboard } from "lucide-react";
+import {
+    Plus,
+    LogOut,
+    Settings,
+    Menu,
+    X,
+    LayoutDashboard,
+    CreditCard,
+} from "lucide-react";
 import { useUpdate } from "@/contexts/UpdateContext";
 import { logoutUser } from "@/lib/auth/client";
 
@@ -96,6 +104,18 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
 
                             <Button
                                 variant="ghost"
+                                onClick={() => router.push("/billing")}
+                                className="space-x-2"
+                                size="sm"
+                            >
+                                <CreditCard className="size-4" />
+                                <span className="hidden md:inline">
+                                    Billing
+                                </span>
+                            </Button>
+
+                            <Button
+                                variant="ghost"
                                 onClick={handleSettingsClick}
                                 className="space-x-2"
                                 size="sm"
@@ -108,6 +128,7 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
                                     <span className="absolute -top-1 -right-1 h-2 w-2 bg-purple-500 rounded-full animate-pulse" />
                                 )}
                             </Button>
+
                             <Button
                                 variant="ghost"
                                 onClick={handleLogout}
@@ -172,6 +193,18 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
                                     <span>Dashboard</span>
                                 </Button>
                             )}
+
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    router.push("/billing");
+                                    setMobileMenuOpen(false);
+                                }}
+                                className="w-full justify-start"
+                            >
+                                <CreditCard className="size-4" />
+                                <span>Billing</span>
+                            </Button>
 
                             <Button
                                 variant="outline"

@@ -149,9 +149,7 @@ export default function Pricing() {
                             size="lg"
                             className="w-full mt-auto bg-accent/20 border border-accent/40 text-foreground shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.2),0_0_0_0.5px_rgba(255,255,255,0.2)] hover:bg-accent/30 z-10"
                         >
-                            <Link href="/register?plan=ultra">
-                                Unlock Ultra
-                            </Link>
+                            <Link href="/register">Unlock Ultra</Link>
                         </Button>
                     </div>
 
@@ -195,7 +193,7 @@ export default function Pricing() {
                             size="lg"
                             className="w-full mt-auto bg-primary/10 border border-primary/30 text-white hover:bg-primary/20"
                         >
-                            <Link href="/register?plan=pro">Start Pro</Link>
+                            <Link href="/register">Start Pro</Link>
                         </Button>
                     </div>
                 </div>

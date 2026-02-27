@@ -1,5 +1,6 @@
 import { prisma } from "../db";
 import { CreateGameLogData, UpdateGameLogData, GameStatus } from "@/types";
+import { SubscriptionService } from "./subscription-service";
 
 export class GameLogService {
     static async getUserGameLogs(
@@ -44,6 +45,17 @@ export class GameLogService {
     }
 
     static async createGameLog(userId: string, data: CreateGameLogData) {
+        // Check plan limit before creating
+        const { allowed, current, limit, plan } =
+            await SubscriptionService.canAddGame(userId);
+        if (!allowed) {
+            const error = new Error(
+                `You've reached the ${plan} plan limit of ${limit} games (currently ${current}). Upgrade your plan to add more.`,
+            );
+            error.name = "PLAN_LIMIT_REACHED";
+            throw error;
+        }
+
         // Find or create the game
         let game = await prisma.game.findUnique({
             where: { rawgId: data.rawgId },

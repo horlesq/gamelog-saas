@@ -21,7 +21,12 @@ export async function POST(request: NextRequest) {
 
         // Create JWT token for auto-login after registration
         const token = jwt.sign(
-            { userId: user.id, email: user.email, isAdmin: user.isAdmin },
+            {
+                userId: user.id,
+                email: user.email,
+                isAdmin: user.isAdmin,
+                plan: "FREE",
+            },
             JWT_SECRET,
             { expiresIn: "7d" },
         );

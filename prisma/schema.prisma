@@ -9,16 +9,27 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  password  String
-  name      String?
-  isAdmin   Boolean   @default(false)
-  gameLogs  GameLog[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  password            String
+  name                String?
+  isAdmin             Boolean   @default(false)
+  plan                Plan      @default(FREE)
+  polarSubscriptionId String?   @unique
+  polarProductId      String?
+  polarCustomerId     String?
+  planUpdatedAt       DateTime?
+  gameLogs            GameLog[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   @@map("users")
+}
+
+enum Plan {
+  FREE
+  PRO
+  ULTRA
 }
 
 model Game {

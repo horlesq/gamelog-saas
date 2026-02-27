@@ -87,6 +87,7 @@ export class AuthService {
                 email: true,
                 name: true,
                 isAdmin: true,
+                plan: true,
                 createdAt: true,
             },
         });
@@ -132,6 +133,7 @@ export class AuthService {
                 email: true,
                 name: true,
                 isAdmin: true,
+                plan: true,
                 createdAt: true,
             },
         });
@@ -195,6 +197,7 @@ export class AuthService {
                 email: true,
                 name: true,
                 isAdmin: true,
+                plan: true,
             },
         });
 
@@ -211,6 +214,7 @@ export class AuthService {
                 email: true,
                 name: true,
                 isAdmin: true,
+                plan: true,
                 createdAt: true,
                 _count: {
                     select: {
@@ -297,6 +301,7 @@ export class AuthService {
                 email: true,
                 name: true,
                 isAdmin: true,
+                plan: true,
                 createdAt: true,
                 updatedAt: true,
             },

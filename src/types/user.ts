@@ -3,6 +3,7 @@ export interface User {
     email: string;
     name?: string;
     isAdmin: boolean;
+    plan: "FREE" | "PRO" | "ULTRA";
     createdAt: string;
     updatedAt: string;
 }
@@ -11,6 +12,7 @@ export interface AuthUser {
     userId: string;
     email: string;
     isAdmin: boolean;
+    plan: "FREE" | "PRO" | "ULTRA";
 }
 
 export interface UserWithGameLogCount extends User {
