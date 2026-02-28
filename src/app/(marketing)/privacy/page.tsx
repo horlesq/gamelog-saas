@@ -13,7 +13,7 @@ export default function PrivacyPage() {
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             <LandingNavbar />
 
-            <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 pb-24">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:pt-36">
                 {/* Header */}
                 <div className="mb-12">
                     <p className="text-xs font-mono uppercase tracking-widest text-accent mb-3">
