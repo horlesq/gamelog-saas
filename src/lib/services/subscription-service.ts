@@ -16,8 +16,10 @@ const PLAN_LIMITS: Record<Plan, number> = {
 let _polar: Polar | null = null;
 function getPolar(): Polar {
     if (!_polar) {
+        const isSandbox = process.env.POLAR_SANDBOX === "true";
         _polar = new Polar({
             accessToken: process.env.POLAR_ACCESS_TOKEN ?? "",
+            ...(isSandbox && { server: "sandbox" as const }),
         });
     }
     return _polar;
