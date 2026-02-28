@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { SubscriptionService } from "@/lib/services/subscription-service";
-import crypto from "crypto";
+import {
+    validateEvent,
+    WebhookVerificationError,
+} from "@polar-sh/sdk/webhooks";
 
 /**
  * Polar.sh Webhook Endpoint
  *
  * Receives events from Polar.sh for subscription lifecycle management.
- * Uses manual Standard Webhooks signature verification to avoid
- * the SDK's strict event parsing which fails on unknown event/benefit types.
+ * Uses the SDK for signature verification but handles event parsing
+ * errors gracefully (the SDK is strict and rejects unknown event types).
  *
  * Events handled:
  * - subscription.created → activate subscription
@@ -17,53 +20,6 @@ import crypto from "crypto";
  * - subscription.revoked → revert to FREE
  * - order.created → activate subscription (fallback)
  */
-
-// Verify Standard Webhooks signature (HMAC-SHA256)
-function verifyWebhookSignature(
-    body: string,
-    headers: Record<string, string>,
-    secret: string,
-): boolean {
-    const msgId = headers["webhook-id"];
-    const msgTimestamp = headers["webhook-timestamp"];
-    const msgSignature = headers["webhook-signature"];
-
-    if (!msgId || !msgTimestamp || !msgSignature) {
-        return false;
-    }
-
-    // Check timestamp (reject webhooks older than 5 minutes)
-    const now = Math.floor(Date.now() / 1000);
-    const ts = parseInt(msgTimestamp, 10);
-    if (isNaN(ts) || Math.abs(now - ts) > 300) {
-        return false;
-    }
-
-    // The secret from Polar starts with "whsec_" — strip that prefix and base64 decode
-    const secretBytes = Buffer.from(
-        secret.startsWith("whsec_") ? secret.slice(6) : secret,
-        "base64",
-    );
-
-    // Standard Webhooks: sign "msg_id.timestamp.body"
-    const signedContent = `${msgId}.${msgTimestamp}.${body}`;
-    const expectedSignature = crypto
-        .createHmac("sha256", secretBytes)
-        .update(signedContent)
-        .digest("base64");
-
-    // The header may contain multiple signatures separated by spaces, each prefixed with "v1,"
-    const signatures = msgSignature.split(" ");
-    for (const sig of signatures) {
-        const [version, signature] = sig.split(",");
-        if (version === "v1" && signature === expectedSignature) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 export async function POST(request: NextRequest) {
     try {
         const body = await request.text();
@@ -82,17 +38,35 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (!verifyWebhookSignature(body, headers, webhookSecret)) {
-            console.error("[Polar Webhook] Signature verification failed");
-            return NextResponse.json(
-                { error: "Invalid webhook signature" },
-                { status: 403 },
-            );
-        }
-
-        // Parse event loosely — don't use SDK's strict validateEvent
+        // Try SDK validation first — it verifies signature + parses event
+        // If parsing fails (unknown event types, schema mismatches), fall back to raw JSON
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const event = JSON.parse(body) as { type: string; data: any };
+        let event: { type: string; data: any };
+
+        try {
+            event = validateEvent(body, headers, webhookSecret);
+        } catch (error) {
+            if (error instanceof WebhookVerificationError) {
+                // Signature is invalid — reject
+                console.error(
+                    "[Polar Webhook] Signature verification failed",
+                    error,
+                );
+                return NextResponse.json(
+                    { error: "Invalid webhook signature" },
+                    { status: 403 },
+                );
+            }
+
+            // Parsing error (unknown event type, schema mismatch, etc.)
+            // The signature was verified OK, but the event payload doesn't match SDK's strict schema.
+            // Fall back to raw JSON parsing.
+            console.log(
+                "[Polar Webhook] SDK parsing failed, falling back to raw JSON:",
+                error instanceof Error ? error.message : error,
+            );
+            event = JSON.parse(body);
+        }
 
         console.log("[Polar Webhook] Event received:", event.type);
 
