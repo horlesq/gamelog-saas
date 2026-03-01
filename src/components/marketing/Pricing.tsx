@@ -4,23 +4,20 @@ import { Button } from "@/components/ui/button";
 
 const freeFeatures = [
     "Track up to 25 games",
-    "Basic tracking (Status, Rating)",
-    "Standard lists",
-    "Public profile",
+    "Basic Tracking",
+    "Standard Lists",
 ];
 
 const proFeatures = [
     "Track up to 500 games",
-    "Advanced filters and sorting",
-    "Custom collections and lists",
-    "Rich text notes for game reviews",
-    "Priority support",
+    "Custom Filters",
+    "Priority Support",
+    "Everything in Free tier",
 ];
 
 const ultraFeatures = [
     "UNLIMITED Games",
     'AI "Next Game" Engine',
-    "Automated Backlog Prioritization",
     "CSV Data Export/Import",
     "Everything in Pro tier",
 ];
