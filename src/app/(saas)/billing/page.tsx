@@ -360,7 +360,7 @@ function BillingContent() {
                                                 Pro
                                             </h4>
                                             <span className="text-sm text-primary font-medium">
-                                                $4.99/mo
+                                                $3.99/mo
                                             </span>
                                         </div>
                                         <p className="text-sm text-muted-foreground mb-4">
@@ -392,7 +392,7 @@ function BillingContent() {
                                             Ultra
                                         </h4>
                                         <span className="text-sm text-accent font-medium">
-                                            $10.99/mo
+                                            $8.99/mo
                                         </span>
                                     </div>
                                     <p className="text-sm text-muted-foreground mb-4">

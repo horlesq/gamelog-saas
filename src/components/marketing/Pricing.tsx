@@ -113,7 +113,7 @@ export default function Pricing() {
                             </p>
                             <div className="flex items-end gap-1 mb-2">
                                 <span className="text-4xl font-bold font-orbitron text-foreground">
-                                    $10.99
+                                    $8.99
                                 </span>
                                 <span className="text-muted-foreground text-sm font-medium mb-1">
                                     / mo
@@ -165,7 +165,7 @@ export default function Pricing() {
                             </p>
                             <div className="flex items-end gap-1 mb-2">
                                 <span className="text-4xl font-bold font-orbitron text-foreground">
-                                    $5.99
+                                    $3.99
                                 </span>
                                 <span className="text-muted-foreground text-sm font-medium mb-1">
                                     / mo
