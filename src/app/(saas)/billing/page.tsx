@@ -11,8 +11,10 @@ import {
     Gamepad2,
     Loader2,
     CheckCircle2,
+    AlertTriangle,
 } from "lucide-react";
 import { PolarEmbedCheckout } from "@polar-sh/checkout/embed";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SubscriptionInfo {
     plan: "FREE" | "PRO" | "ULTRA";
@@ -21,6 +23,9 @@ interface SubscriptionInfo {
     polarCustomerId: string | null;
     planUpdatedAt: string | null;
     hasActiveSubscription: boolean;
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+    subscriptionStatus: string | null;
 }
 
 const PLAN_CONFIG = {
@@ -50,15 +55,40 @@ const PLAN_CONFIG = {
     },
 };
 
+function BillingSkeleton() {
+    return (
+        <div className="min-h-screen bg-background text-foreground flex flex-col">
+            <Navbar />
+
+            <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="w-full mx-auto">
+                    <h1 className="font-orbitron font-bold text-3xl sm:text-4xl bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent mb-2">
+                        Billing & Subscription
+                    </h1>
+                    <p className="text-muted-foreground mb-10">
+                        Manage your plan and track your usage.
+                    </p>
+
+                    {/* Skeleton Plan Card */}
+                    <Skeleton className="h-44 rounded-2xl mb-8" />
+
+                    {/* Skeleton Upgrade Cards */}
+                    <div className="space-y-4">
+                        <Skeleton className="h-5 w-40 rounded-md" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <Skeleton className="h-48 rounded-2xl" />
+                            <Skeleton className="h-48 rounded-2xl" />
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+}
+
 export default function BillingPage() {
     return (
-        <Suspense
-            fallback={
-                <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-                    <Loader2 className="size-8 animate-spin text-muted-foreground" />
-                </div>
-            }
-        >
+        <Suspense fallback={<BillingSkeleton />}>
             <BillingContent />
         </Suspense>
     );
@@ -72,6 +102,8 @@ function BillingContent() {
     );
     const [loading, setLoading] = useState(true);
     const [upgrading, setUpgrading] = useState<string | null>(null);
+    const [cancelling, setCancelling] = useState(false);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
     const showSuccess = searchParams.get("success") === "true";
     const checkoutRef = useRef<ReturnType<
         typeof PolarEmbedCheckout.create
@@ -104,7 +136,8 @@ function BillingContent() {
         };
     }, []);
 
-    const handleUpgrade = async (plan: "PRO" | "ULTRA") => {
+    // New checkout flow — for users without an existing subscription (FREE → PRO or ULTRA)
+    const handleNewCheckout = async (plan: "PRO" | "ULTRA") => {
         setUpgrading(plan);
         try {
             const res = await fetch("/api/checkout", {
@@ -138,17 +171,70 @@ function BillingContent() {
                 checkoutRef.current = null;
             });
         } catch (error) {
+            console.error("Checkout error:", error);
+            setUpgrading(null);
+        }
+    };
+
+    // Upgrade existing subscription — for users with an active subscription (PRO → ULTRA)
+    const handlePlanUpgrade = async (plan: "PRO" | "ULTRA") => {
+        setUpgrading(plan);
+        try {
+            const res = await fetch("/api/subscription/upgrade", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ plan }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to upgrade");
+            }
+
+            setUpgrading(null);
+            fetchSubscription();
+            router.replace("/billing?success=true");
+        } catch (error) {
             console.error("Upgrade error:", error);
             setUpgrading(null);
         }
     };
 
+    // Handle upgrade button click — routes to checkout or subscription update
+    const handleUpgrade = async (plan: "PRO" | "ULTRA") => {
+        if (subscription?.hasActiveSubscription) {
+            // Already subscribed — use Polar subscription update API
+            await handlePlanUpgrade(plan);
+        } else {
+            // No subscription yet — use Polar checkout
+            await handleNewCheckout(plan);
+        }
+    };
+
+    // Cancel subscription
+    const handleCancel = async () => {
+        setCancelling(true);
+        try {
+            const res = await fetch("/api/subscription/cancel", {
+                method: "POST",
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to cancel");
+            }
+
+            setShowCancelConfirm(false);
+            setCancelling(false);
+            fetchSubscription();
+        } catch (error) {
+            console.error("Cancel error:", error);
+            setCancelling(false);
+        }
+    };
+
     if (loading) {
-        return (
-            <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-                <Loader2 className="size-8 animate-spin text-muted-foreground" />
-            </div>
-        );
+        return <BillingSkeleton />;
     }
 
     const plan = subscription?.plan || "FREE";
@@ -162,8 +248,8 @@ function BillingContent() {
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             <Navbar />
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="w-full max-w-4xl mx-auto">
+            <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="w-full mx-auto">
                     <h1 className="font-orbitron font-bold text-3xl sm:text-4xl bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent mb-2">
                         Billing & Subscription
                     </h1>
@@ -259,11 +345,13 @@ function BillingContent() {
                     {plan !== "ULTRA" && (
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-foreground">
-                                Upgrade Your Plan
+                                {plan === "FREE"
+                                    ? "Upgrade Your Plan"
+                                    : "Upgrade to Ultra"}
                             </h3>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {/* Pro Upgrade */}
+                                {/* Pro Upgrade — only show for FREE users */}
                                 {plan === "FREE" && (
                                     <div className="rounded-2xl border border-primary/30 bg-primary/5 p-6">
                                         <div className="flex items-center gap-3 mb-3">
@@ -296,7 +384,7 @@ function BillingContent() {
                                     </div>
                                 )}
 
-                                {/* Ultra Upgrade */}
+                                {/* Ultra Upgrade — show for FREE and PRO users */}
                                 <div className="rounded-2xl border border-accent/30 bg-accent/5 p-6">
                                     <div className="flex items-center gap-3 mb-3">
                                         <Crown className="size-5 text-accent" />
@@ -322,16 +410,20 @@ function BillingContent() {
                                         {upgrading === "ULTRA" ? (
                                             <Loader2 className="size-4 animate-spin" />
                                         ) : (
-                                            <span>Upgrade to Ultra</span>
+                                            <span>
+                                                {plan === "PRO"
+                                                    ? "Upgrade to Ultra"
+                                                    : "Upgrade to Ultra"}
+                                            </span>
                                         )}
                                     </Button>
                                 </div>
                             </div>
 
                             <p className="text-xs text-muted-foreground/60">
-                                Payments are processed securely by Polar. After
-                                purchase, your plan will be activated
-                                automatically.
+                                Payments are processed securely by Polar.
+                                {plan === "PRO" &&
+                                    " Upgrading will prorate your existing subscription."}
                             </p>
                         </div>
                     )}
@@ -355,12 +447,110 @@ function BillingContent() {
                                         </span>
                                     </div>
                                 )}
+                                {subscription.currentPeriodEnd && (
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">
+                                            {subscription.cancelAtPeriodEnd
+                                                ? "Access until"
+                                                : "Next renewal"}
+                                        </span>
+                                        <span className="text-foreground">
+                                            {new Date(
+                                                subscription.currentPeriodEnd,
+                                            ).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
-                            <p className="text-xs text-muted-foreground/60 mt-4">
-                                To cancel or manage your subscription, visit
-                                your Polar account. Your plan will revert to
-                                Free after cancellation.
-                            </p>
+
+                            {/* Pending Cancellation Notice */}
+                            {subscription.cancelAtPeriodEnd && (
+                                <div className="mt-4 rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-4 flex items-start gap-3">
+                                    <AlertTriangle className="size-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-sm font-medium text-yellow-300">
+                                            Cancellation pending
+                                        </p>
+                                        <p className="text-xs text-yellow-400/70 mt-1">
+                                            Your subscription will end on{" "}
+                                            {subscription.currentPeriodEnd
+                                                ? new Date(
+                                                      subscription.currentPeriodEnd,
+                                                  ).toLocaleDateString()
+                                                : "the end of your billing period"}
+                                            . You&apos;ll keep full access until
+                                            then.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Cancel Subscription — only show if not already pending cancellation */}
+                            {!subscription.cancelAtPeriodEnd && (
+                                <div className="mt-6 pt-4 border-t border-border/30">
+                                    {!showCancelConfirm ? (
+                                        <button
+                                            onClick={() =>
+                                                setShowCancelConfirm(true)
+                                            }
+                                            className="text-sm text-red-400/70 hover:text-red-400 transition-colors"
+                                        >
+                                            Cancel subscription
+                                        </button>
+                                    ) : (
+                                        <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4 space-y-3">
+                                            <div className="flex items-start gap-3">
+                                                <AlertTriangle className="size-5 text-red-400 flex-shrink-0 mt-0.5" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-red-300">
+                                                        Cancel your
+                                                        subscription?
+                                                    </p>
+                                                    <p className="text-xs text-red-400/70 mt-1">
+                                                        Your subscription will
+                                                        remain active until{" "}
+                                                        {subscription.currentPeriodEnd
+                                                            ? new Date(
+                                                                  subscription.currentPeriodEnd,
+                                                              ).toLocaleDateString()
+                                                            : "the end of your billing period"}
+                                                        . After that, your
+                                                        account will revert to
+                                                        the Free plan.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    onClick={handleCancel}
+                                                    disabled={cancelling}
+                                                    size="sm"
+                                                    className="bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30"
+                                                >
+                                                    {cancelling ? (
+                                                        <Loader2 className="size-4 animate-spin" />
+                                                    ) : (
+                                                        "Yes, cancel"
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    onClick={() =>
+                                                        setShowCancelConfirm(
+                                                            false,
+                                                        )
+                                                    }
+                                                    disabled={cancelling}
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    className="text-muted-foreground hover:text-foreground"
+                                                >
+                                                    Keep subscription
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

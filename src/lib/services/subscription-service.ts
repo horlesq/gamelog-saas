@@ -175,7 +175,74 @@ export class SubscriptionService {
     }
 
     /**
-     * Get subscription info for a user.
+     * Upgrade an existing subscription to a different product via Polar API.
+     * This changes the product on the existing subscription (proration handled by Polar).
+     */
+    static async upgradeSubscription(userId: string, newPlan: "PRO" | "ULTRA") {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { polarSubscriptionId: true, plan: true },
+        });
+
+        if (!user?.polarSubscriptionId) {
+            throw new Error("No active subscription to upgrade");
+        }
+
+        const newProductId = this.getProductIdForPlan(newPlan);
+        if (!newProductId) {
+            throw new Error(`No product ID configured for plan: ${newPlan}`);
+        }
+
+        const polar = getPolar();
+
+        // Update the subscription's product on Polar
+        const updated = await polar.subscriptions.update({
+            id: user.polarSubscriptionId,
+            subscriptionUpdate: {
+                productId: newProductId,
+            },
+        });
+
+        // Update local DB
+        await prisma.user.update({
+            where: { id: userId },
+            data: {
+                plan: newPlan === "PRO" ? Plan.PRO : Plan.ULTRA,
+                polarProductId: newProductId,
+                planUpdatedAt: new Date(),
+            },
+        });
+
+        return updated;
+    }
+
+    /**
+     * Cancel a subscription at the end of the current billing period via Polar API.
+     * The user keeps benefits until the period ends.
+     */
+    static async cancelSubscriptionAtPeriodEnd(userId: string) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { polarSubscriptionId: true },
+        });
+
+        if (!user?.polarSubscriptionId) {
+            throw new Error("No active subscription to cancel");
+        }
+
+        const polar = getPolar();
+
+        // Cancel at end of current billing period (user keeps access until then)
+        await polar.subscriptions.update({
+            id: user.polarSubscriptionId,
+            subscriptionUpdate: {
+                cancelAtPeriodEnd: true,
+            },
+        });
+    }
+
+    /**
+     * Get subscription info for a user, including Polar subscription details.
      */
     static async getSubscriptionInfo(userId: string) {
         const user = await prisma.user.findUnique({
@@ -196,6 +263,25 @@ export class SubscriptionService {
         const limit = this.getGameLimit(user.plan);
         const current = await prisma.gameLog.count({ where: { userId } });
 
+        // Fetch Polar subscription details for renewal date
+        let currentPeriodEnd: string | null = null;
+        let cancelAtPeriodEnd = false;
+        let subscriptionStatus: string | null = null;
+
+        if (user.polarSubscriptionId) {
+            try {
+                const polar = getPolar();
+                const sub = await polar.subscriptions.get({
+                    id: user.polarSubscriptionId,
+                });
+                currentPeriodEnd = sub.currentPeriodEnd?.toISOString() ?? null;
+                cancelAtPeriodEnd = sub.cancelAtPeriodEnd;
+                subscriptionStatus = sub.status;
+            } catch (error) {
+                console.error("Failed to fetch Polar subscription:", error);
+            }
+        }
+
         return {
             plan: user.plan,
             gameLimit: limit,
@@ -203,6 +289,9 @@ export class SubscriptionService {
             polarCustomerId: user.polarCustomerId,
             planUpdatedAt: user.planUpdatedAt,
             hasActiveSubscription: user.plan !== Plan.FREE,
+            currentPeriodEnd,
+            cancelAtPeriodEnd,
+            subscriptionStatus,
         };
     }
 }
