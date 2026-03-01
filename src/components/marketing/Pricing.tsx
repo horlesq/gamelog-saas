@@ -95,8 +95,8 @@ export default function Pricing() {
                         </Button>
                     </div>
 
-                    {/* Ultra Tier (Highlighted - Middle position for visual weight) */}
-                    <div className="relative flex flex-col rounded-[2rem] border border-accent/40 bg-black/40 p-10 shadow-[0_0_80px_-20px_rgba(109,40,217,0.3)] md:-mt-4 md:-mb-4 z-10 overflow-hidden flex-1">
+                    {/* Ultra Tier (Highlighted - Middle position on desktop, last on mobile) */}
+                    <div className="order-3 md:order-2 relative flex flex-col rounded-[2rem] border border-accent/40 bg-black/40 p-10 shadow-[0_0_80px_-20px_rgba(109,40,217,0.3)] md:-mt-4 md:-mb-4 z-10 overflow-hidden flex-1">
                         {/* Glow */}
                         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-accent to-transparent"></div>
 
@@ -153,8 +153,8 @@ export default function Pricing() {
                         </Button>
                     </div>
 
-                    {/* Pro Tier (Right) */}
-                    <div className="relative flex flex-col rounded-[2rem] border border-border/40 bg-card/40 p-10 flex-1">
+                    {/* Pro Tier (Right on desktop, middle on mobile) */}
+                    <div className="order-2 md:order-3 relative flex flex-col rounded-[2rem] border border-border/40 bg-card/40 p-10 flex-1">
                         <div className="mb-8">
                             <h3 className="font-orbitron font-bold text-xl text-foreground mb-2 text-white/90">
                                 PRO
