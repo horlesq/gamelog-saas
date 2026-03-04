@@ -397,7 +397,7 @@ function BillingContent() {
                                     </div>
                                     <p className="text-sm text-muted-foreground mb-4">
                                         Unlimited games, AI recommendations,
-                                        automated backlog prioritization, and
+                                        support prioritization, and
                                         CSV export.
                                     </p>
                                     <Button
