@@ -77,6 +77,7 @@ export interface RAWGGame {
     rating: number;
     genres: { id: number; name: string }[];
     platforms: { platform: { id: number; name: string } }[];
+    developers?: { id: number; name: string }[];
     short_screenshots?: { id: number; image: string }[];
 }
 
