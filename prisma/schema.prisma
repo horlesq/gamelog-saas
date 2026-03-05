@@ -43,6 +43,7 @@ model Game {
   metacritic      Int?
   genres          String?
   platforms       String?
+  developers      String?
   gameLogs        GameLog[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt

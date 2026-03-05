@@ -10,6 +10,7 @@ export interface Game {
     metacritic?: number;
     genres?: string;
     platforms?: string;
+    developers?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -46,6 +47,7 @@ export interface CreateGameLogData {
     gameMetacritic?: number;
     gameGenres?: string;
     gamePlatforms?: string;
+    gameDevelopers?: string;
     status: GameStatus;
     rating?: number;
     hoursPlayed?: number;

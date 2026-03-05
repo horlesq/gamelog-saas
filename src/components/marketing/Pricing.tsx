@@ -10,8 +10,8 @@ const freeFeatures = [
 
 const proFeatures = [
     "Track up to 500 games",
+    "Analytics Dashboard",
     "Custom Filters",
-    "Priority Support",
     "Everything in Free tier",
 ];
 
@@ -19,6 +19,7 @@ const ultraFeatures = [
     "UNLIMITED Games",
     'AI "Next Game" Engine',
     "CSV Data Export/Import",
+    "Priority Support",
     "Everything in Pro tier",
 ];
 

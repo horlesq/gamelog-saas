@@ -12,6 +12,7 @@ import {
     X,
     LayoutDashboard,
     CreditCard,
+    BarChart3,
 } from "lucide-react";
 import { useUpdate } from "@/contexts/UpdateContext";
 import { logoutUser } from "@/lib/auth/client";
@@ -99,6 +100,24 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
                                     </span>
                                 </Button>
                             )}
+
+                            <Button
+                                variant={
+                                    pathname === "/dashboard/analytics"
+                                        ? "secondary"
+                                        : "ghost"
+                                }
+                                onClick={() =>
+                                    router.push("/dashboard/analytics")
+                                }
+                                className="space-x-2"
+                                size="sm"
+                            >
+                                <BarChart3 className="size-4" />
+                                <span className="hidden md:inline">
+                                    Analytics
+                                </span>
+                            </Button>
 
                             <div className="h-6 w-px bg-white/10 mx-1"></div>
 
@@ -193,6 +212,18 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
                                     <span>Dashboard</span>
                                 </Button>
                             )}
+
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    router.push("/dashboard/analytics");
+                                    setMobileMenuOpen(false);
+                                }}
+                                className="w-full justify-start"
+                            >
+                                <BarChart3 className="size-4" />
+                                <span>Analytics</span>
+                            </Button>
 
                             <Button
                                 variant="outline"
