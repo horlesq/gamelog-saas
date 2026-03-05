@@ -13,6 +13,7 @@ import {
     LayoutDashboard,
     CreditCard,
     BarChart3,
+    Sparkles,
 } from "lucide-react";
 import { useUpdate } from "@/contexts/UpdateContext";
 import { logoutUser } from "@/lib/auth/client";
@@ -74,7 +75,7 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
                         </div>
 
                         {/* Desktop Menu */}
-                        <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
+                        <div className="hidden lg:flex items-center space-x-2 lg:space-x-4">
                             {pathname === "/dashboard" ? (
                                 <Button
                                     onClick={() => onAddGame?.()}
@@ -83,7 +84,7 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
                                     size="sm"
                                 >
                                     <Plus className="size-4" />
-                                    <span className="hidden md:inline">
+                                    <span className="hidden lg:inline">
                                         Add Game
                                     </span>
                                 </Button>
@@ -95,7 +96,7 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
                                     size="sm"
                                 >
                                     <LayoutDashboard className="size-4" />
-                                    <span className="hidden md:inline">
+                                    <span className="hidden lg:inline">
                                         Dashboard
                                     </span>
                                 </Button>
@@ -114,8 +115,26 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
                                 size="sm"
                             >
                                 <BarChart3 className="size-4" />
-                                <span className="hidden md:inline">
+                                <span className="hidden lg:inline">
                                     Analytics
+                                </span>
+                            </Button>
+
+                            <Button
+                                variant={
+                                    pathname === "/dashboard/next-game"
+                                        ? "secondary"
+                                        : "ghost"
+                                }
+                                onClick={() =>
+                                    router.push("/dashboard/next-game")
+                                }
+                                className="space-x-2"
+                                size="sm"
+                            >
+                                <Sparkles className="size-4" />
+                                <span className="hidden lg:inline">
+                                    Next Game
                                 </span>
                             </Button>
 
@@ -128,7 +147,7 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
                                 size="sm"
                             >
                                 <CreditCard className="size-4" />
-                                <span className="hidden md:inline">
+                                <span className="hidden lg:inline">
                                     Billing
                                 </span>
                             </Button>
@@ -140,7 +159,7 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
                                 size="sm"
                             >
                                 <Settings className="size-4" />
-                                <span className="hidden md:inline">
+                                <span className="hidden lg:inline">
                                     Settings
                                 </span>
                                 {showNavbarDot && (
@@ -155,12 +174,24 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
                                 size="sm"
                             >
                                 <LogOut className="size-4" />
-                                <span className="hidden md:inline">Logout</span>
+                                <span className="hidden lg:inline">Logout</span>
                             </Button>
                         </div>
 
-                        {/* Mobile Menu Button */}
-                        <div className="md:hidden flex items-center">
+                        {/* Mobile Main Action & Menu Button */}
+                        <div className="lg:hidden flex items-center space-x-2">
+                            {pathname === "/dashboard" && (
+                                <Button
+                                    onClick={() => onAddGame?.()}
+                                    variant="default"
+                                    className="space-x-2"
+                                    size="sm"
+                                >
+                                    <Plus className="size-4" />
+                                    <span>Add Game</span>
+                                </Button>
+                            )}
+
                             <Button
                                 variant="ghost"
                                 onClick={() =>
@@ -180,32 +211,20 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
 
                     {/* Mobile Menu Dropdown */}
                     <div
-                        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+                        className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
                             mobileMenuOpen
                                 ? "max-h-80 opacity-100 border-t border-white/10 bg-card/50 backdrop-blur-xl"
                                 : "max-h-0 opacity-0"
                         }`}
                     >
                         <div className="px-4 py-4 space-y-2">
-                            {pathname === "/dashboard" ? (
+                            {pathname !== "/dashboard" && (
                                 <Button
-                                    onClick={() => {
-                                        onAddGame?.();
-                                        setMobileMenuOpen(false);
-                                    }}
-                                    variant="default"
-                                    className="w-full justify-start"
-                                >
-                                    <Plus className="size-4" />
-                                    <span>Add Game</span>
-                                </Button>
-                            ) : (
-                                <Button
+                                    variant="outline"
                                     onClick={() => {
                                         router.push("/dashboard");
                                         setMobileMenuOpen(false);
                                     }}
-                                    variant="default"
                                     className="w-full justify-start"
                                 >
                                     <LayoutDashboard className="size-4" />
@@ -223,6 +242,18 @@ const Navbar = forwardRef<NavbarRef, NavbarProps>(({ onAddGame }, ref) => {
                             >
                                 <BarChart3 className="size-4" />
                                 <span>Analytics</span>
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    router.push("/dashboard/next-game");
+                                    setMobileMenuOpen(false);
+                                }}
+                                className="w-full justify-start"
+                            >
+                                <Sparkles className="size-4" />
+                                <span>Next Game</span>
                             </Button>
 
                             <Button
