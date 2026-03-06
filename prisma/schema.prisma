@@ -19,6 +19,8 @@ model User {
   polarProductId      String?
   polarCustomerId     String?
   planUpdatedAt       DateTime?
+  aiGenerationsCount  Int       @default(0)
+  lastAiGenerationAt  DateTime?
   gameLogs            GameLog[]
   customFilters       CustomFilter[]
   createdAt           DateTime  @default(now())

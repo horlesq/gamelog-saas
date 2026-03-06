@@ -17,6 +17,8 @@ import {
     saveExcludedNames,
     loadAddedIds,
     saveAddedIds,
+    getRateLimitInfo,
+    RateLimitInfo,
 } from "@/lib/client/next-game";
 import { createGameLog, getGameLogs } from "@/lib/client/game-logs";
 import toast from "react-hot-toast";
@@ -32,6 +34,8 @@ export default function AiSuggestPage() {
     const [hasGenerated, setHasGenerated] = useState(false);
     const [addingIds, setAddingIds] = useState<Set<number>>(new Set());
     const [addedIds, setAddedIds] = useState<Set<number>>(new Set());
+    const [dailyLimitReached, setDailyLimitReached] = useState(false);
+    const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null);
     const router = useRouter();
 
     const isUltra = user?.plan === "ULTRA";
@@ -41,6 +45,16 @@ export default function AiSuggestPage() {
             try {
                 const userData = await getCurrentUser();
                 setUser(userData.user);
+
+                if (userData.user.plan === "ULTRA") {
+                    const limitInfo = await getRateLimitInfo();
+                    if (limitInfo) {
+                        setRateLimit(limitInfo);
+                        if (limitInfo.remaining <= 0) {
+                            setDailyLimitReached(true);
+                        }
+                    }
+                }
             } catch (err) {
                 console.error("Failed to load user for checking plan", err);
                 if (err instanceof Error && err.message.includes("401")) {
@@ -92,6 +106,13 @@ export default function AiSuggestPage() {
             setSuggestions(data.suggestions);
             saveSuggestions(data.suggestions);
 
+            if (data.rateLimit) {
+                setRateLimit(data.rateLimit);
+                if (data.rateLimit.remaining <= 0) {
+                    setDailyLimitReached(true);
+                }
+            }
+
             // Append new names to history
             const newNames = data.suggestions.map((s: Suggestion) => s.name);
             saveExcludedNames([...new Set([...allExcluded, ...newNames])]);
@@ -102,6 +123,21 @@ export default function AiSuggestPage() {
             console.error("AI suggestions error:", err);
             if (err instanceof Error && err.message.includes("401")) {
                 router.push("/login");
+                return;
+            }
+            if (
+                err instanceof Error &&
+                err.message.includes("Daily limit reached")
+            ) {
+                setDailyLimitReached(true);
+                if (rateLimit) {
+                    setRateLimit({
+                        ...rateLimit,
+                        remaining: 0,
+                        used: rateLimit.max,
+                    });
+                }
+                toast.error("Daily limit reached. Please try again tomorrow.");
                 return;
             }
             setError(
@@ -183,22 +219,53 @@ export default function AiSuggestPage() {
                                 </span>
                             </div>
                         ) : (
-                            <Button
-                                onClick={handleGenerate}
-                                variant="default"
-                                className="space-x-2 shrink-0 w-full sm:w-auto"
-                            >
-                                {hasGenerated ? (
-                                    <RefreshCw className="size-4" />
-                                ) : (
-                                    <Sparkles className="size-4" />
+                            <div className="flex flex-col items-end gap-1.5 w-full sm:w-auto mt-2 sm:mt-0">
+                                <Button
+                                    onClick={handleGenerate}
+                                    variant="default"
+                                    className="space-x-2 shrink-0 w-full sm:w-auto"
+                                    disabled={dailyLimitReached || loading}
+                                >
+                                    {hasGenerated ? (
+                                        <RefreshCw className="size-4" />
+                                    ) : (
+                                        <Sparkles className="size-4" />
+                                    )}
+                                    <span>
+                                        {hasGenerated
+                                            ? "Suggest Again"
+                                            : "Get Suggestions"}
+                                    </span>
+                                </Button>
+                                {rateLimit && (
+                                    <div className="flex flex-col items-end w-full sm:w-auto px-1 sm:px-0">
+                                        <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+                                            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">
+                                                Refreshes
+                                            </span>
+                                            <span
+                                                className={`text-xs font-bold ${rateLimit.remaining > 0 ? "text-primary/90" : "text-destructive"}`}
+                                            >
+                                                {rateLimit.remaining} /{" "}
+                                                {rateLimit.max}
+                                            </span>
+                                        </div>
+                                        {rateLimit.remaining <= 0 && (
+                                            <span className="text-[11px] text-muted-foreground/80 mt-0.5">
+                                                Resets at{" "}
+                                                {new Date(
+                                                    rateLimit.resetTime,
+                                                ).toLocaleString([], {
+                                                    month: "short",
+                                                    day: "numeric",
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })}
+                                            </span>
+                                        )}
+                                    </div>
                                 )}
-                                <span>
-                                    {hasGenerated
-                                        ? "Suggest Again"
-                                        : "Get Suggestions"}
-                                </span>
-                            </Button>
+                            </div>
                         )}
                     </div>
                 )}

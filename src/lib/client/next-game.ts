@@ -1,5 +1,28 @@
 import { Suggestion } from "@/components/features/SuggestionCard";
 
+export interface RateLimitInfo {
+    used: number;
+    max: number;
+    remaining: number;
+    resetTime: string;
+}
+
+export async function getRateLimitInfo(): Promise<RateLimitInfo | null> {
+    try {
+        const response = await fetch("/api/next-game", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        return response.json();
+    } catch {
+        return null;
+    }
+}
 export async function getNextGameSuggestions(excludeNames: string[] = []) {
     const response = await fetch("/api/next-game", {
         method: "POST",

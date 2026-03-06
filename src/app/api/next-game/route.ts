@@ -22,6 +22,60 @@ interface EnrichedSuggestion {
     rawgId: number | null;
 }
 
+export async function GET() {
+    try {
+        const user = await requireAuth();
+
+        if (user.plan !== "ULTRA") {
+            return NextResponse.json(
+                {
+                    error: "This feature is only available for ULTRA users. Please upgrade your plan.",
+                },
+                { status: 403 },
+            );
+        }
+
+        const dbUser = await prisma.user.findUnique({
+            where: { id: user.userId },
+            select: { aiGenerationsCount: true, lastAiGenerationAt: true },
+        });
+
+        if (!dbUser) {
+            return NextResponse.json(
+                { error: "User not found" },
+                { status: 404 },
+            );
+        }
+
+        const today = new Date().toDateString();
+        const lastGenDay = dbUser.lastAiGenerationAt?.toDateString();
+        let currentCount = dbUser.aiGenerationsCount;
+
+        if (lastGenDay !== today) {
+            currentCount = 0;
+        }
+
+        const maxRequests = 10;
+        const remainingRequests = Math.max(0, maxRequests - currentCount);
+
+        const resetDate = new Date();
+        resetDate.setHours(24, 0, 0, 0);
+
+        return NextResponse.json({
+            used: currentCount,
+            max: maxRequests,
+            remaining: remainingRequests,
+            resetTime: resetDate.toISOString(),
+        });
+    } catch (error) {
+        console.error("AI Suggest GET error:", error);
+        return NextResponse.json(
+            { error: "Internal server error" },
+            { status: 500 },
+        );
+    }
+}
+
 export async function POST(request: Request) {
     try {
         const user = await requireAuth();
@@ -32,6 +86,37 @@ export async function POST(request: Request) {
                     error: "This feature is only available for ULTRA users. Please upgrade your plan.",
                 },
                 { status: 403 },
+            );
+        }
+
+        // --- RATE LIMITING ---
+        const dbUser = await prisma.user.findUnique({
+            where: { id: user.userId },
+            select: { aiGenerationsCount: true, lastAiGenerationAt: true },
+        });
+
+        if (!dbUser) {
+            return NextResponse.json(
+                { error: "User not found" },
+                { status: 404 },
+            );
+        }
+
+        const today = new Date().toDateString();
+        const lastGenDay = dbUser.lastAiGenerationAt?.toDateString();
+        let currentCount = dbUser.aiGenerationsCount;
+
+        if (lastGenDay !== today) {
+            // It's a new day, reset the count in memory for this check
+            currentCount = 0;
+        }
+
+        if (currentCount >= 10) {
+            return NextResponse.json(
+                {
+                    error: "Daily limit reached. You can generate up to 10 recommendations per day. Please try again tomorrow.",
+                },
+                { status: 429 },
             );
         }
 
@@ -170,6 +255,16 @@ Respond with ONLY a valid JSON array, no markdown, no extra text. Each object mu
             );
         }
 
+        // --- UPDATE RATE LIMIT COUNTER ---
+        const newCount = currentCount + 1;
+        await prisma.user.update({
+            where: { id: user.userId },
+            data: {
+                aiGenerationsCount: newCount,
+                lastAiGenerationAt: new Date(),
+            },
+        });
+
         // Parse the JSON response
         let suggestions: AiSuggestion[];
         try {
@@ -233,7 +328,18 @@ Respond with ONLY a valid JSON array, no markdown, no extra text. Each object mu
             }),
         );
 
-        return NextResponse.json({ suggestions: enrichedSuggestions });
+        const resetDate = new Date();
+        resetDate.setHours(24, 0, 0, 0);
+
+        return NextResponse.json({
+            suggestions: enrichedSuggestions,
+            rateLimit: {
+                used: newCount,
+                max: 10,
+                remaining: Math.max(0, 10 - newCount),
+                resetTime: resetDate.toISOString(),
+            },
+        });
     } catch (error) {
         console.error("AI Suggest error:", error);
 
