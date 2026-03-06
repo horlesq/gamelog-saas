@@ -4,6 +4,7 @@ import React from "react";
 import { UpdateProvider, useUpdate } from "@/contexts/UpdateContext";
 import UpdateConfirmationModal from "@/components/features/UpdateConfirmationModal";
 import { ReactLenis } from "lenis/react";
+import { Toaster } from "react-hot-toast";
 
 function UpdateModalContainer() {
     const { showConfirmDialog, hideConfirmDialog, updateInfo, executeUpdate } =
@@ -27,6 +28,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <UpdateProvider>
                 {children}
                 <UpdateModalContainer />
+                <Toaster position="bottom-right" />
             </UpdateProvider>
         </ReactLenis>
     );

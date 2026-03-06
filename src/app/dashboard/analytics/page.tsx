@@ -84,7 +84,10 @@ export default function AnalyticsPage() {
                         <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">
                             Get detailed insights into your gaming library with
                             charts for genres, platforms, ratings, and more.
-                            Available on Pro and Ultra plans.
+                            Available on{" "}
+                            <strong className="text-primary">Pro</strong> and{" "}
+                            <strong className="text-accent">Ultra</strong>{" "}
+                            plans.
                         </p>
                         <Link href="/billing">
                             <Button className="gap-2">

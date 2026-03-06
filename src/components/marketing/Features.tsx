@@ -147,9 +147,6 @@ export default function Features() {
                     <div className="order-5 relative border-y lg:border-y-0 border-border/40 p-10 md:p-16 lg:p-20 bg-card/40">
                         <h3 className="font-orbitron font-bold text-2xl md:text-3xl text-foreground mb-4 opacity-90">
                             AI Recommendations{" "}
-                            <span className="text-xs font-mono uppercase text-accent ml-2 tracking-widest leading-none bg-accent/10 px-2 py-1 rounded-full border border-accent/20 align-middle">
-                                Coming Soon
-                            </span>
                         </h3>
                         <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-8">
                             Get smart game recommendations based on what you

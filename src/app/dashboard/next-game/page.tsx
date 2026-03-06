@@ -309,8 +309,8 @@ export default function AiSuggestPage() {
                         </h3>
                         <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">
                             Get personalized game suggestions based on your
-                            gaming taste using our advanced AI. Available on the
-                            Ultra plan.
+                            gaming taste using our advanced AI. Available on the{" "}
+                            <strong className="text-accent">Ultra</strong> plan.
                         </p>
                         <Link href="/billing">
                             <Button className="gap-2">

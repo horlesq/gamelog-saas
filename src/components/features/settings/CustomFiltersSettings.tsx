@@ -283,8 +283,8 @@ export default function CustomFiltersSettings({
                     </h3>
                     <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">
                         Custom filters let you save and reuse complex filter
-                        combinations across your game library. Available on Pro
-                        and Ultra plans.
+                        combinations across your game library. Available on{" "}
+                        <strong className="text-primary">Pro</strong> and <strong className="text-accent">Ultra</strong> plans.
                     </p>
                     <Link href="/billing">
                         <Button className="gap-2">
