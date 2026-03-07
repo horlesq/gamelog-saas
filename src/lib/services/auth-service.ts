@@ -24,6 +24,30 @@ export class AuthService {
     }
 
     /**
+     * Generate a verification token
+     */
+    static async generateVerificationToken(email: string) {
+        // Delete any existing tokens for this email
+        await prisma.verificationToken.deleteMany({
+            where: { identifier: email },
+        });
+
+        // Create new token (expires in 24 hours)
+        const token = require("crypto").randomUUID();
+        const expires = new Date(new Date().getTime() + 1000 * 60 * 60 * 24);
+
+        const verificationToken = await prisma.verificationToken.create({
+            data: {
+                identifier: email,
+                token,
+                expires,
+            },
+        });
+
+        return verificationToken;
+    }
+
+    /**
      * Create initial admin user if none exists
      */
     static async createAdminUser() {
@@ -65,9 +89,17 @@ export class AuthService {
             return null;
         }
 
-        const isValid = await this.verifyPassword(password, user.password);
+        const isValid = await this.verifyPassword(
+            password,
+            user.password || "",
+        );
         if (!isValid) {
             return null;
+        }
+
+        // Prevent login if email is not verified (unless they are admin)
+        if (!user.emailVerified && !user.isAdmin) {
+            throw new Error("EmailNotVerified");
         }
 
         // Return user without password
@@ -196,6 +228,7 @@ export class AuthService {
                 id: true,
                 email: true,
                 name: true,
+                emailVerified: true,
                 isAdmin: true,
                 plan: true,
             },
@@ -300,6 +333,7 @@ export class AuthService {
                 id: true,
                 email: true,
                 name: true,
+                emailVerified: true,
                 isAdmin: true,
                 plan: true,
                 createdAt: true,

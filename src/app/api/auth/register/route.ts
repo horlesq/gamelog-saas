@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AuthService } from "@/lib/services/auth-service";
 import { registerSchema } from "@/lib/validations";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { sendVerificationEmail } from "@/lib/emails/mail";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this";
 
@@ -19,26 +19,13 @@ export async function POST(request: NextRequest) {
             isAdmin: false,
         });
 
-        // Create JWT token for auto-login after registration
-        const token = jwt.sign(
-            {
-                userId: user.id,
-                email: user.email,
-                isAdmin: user.isAdmin,
-                plan: "FREE",
-            },
-            JWT_SECRET,
-            { expiresIn: "7d" },
+        // Generate verification token
+        const verificationToken = await AuthService.generateVerificationToken(
+            user.email,
         );
 
-        // Set cookie
-        const cookieStore = await cookies();
-        cookieStore.set("auth-token", token, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 7, // 7 days
-        });
+        // Send email
+        await sendVerificationEmail(user.email, verificationToken.token);
 
         return NextResponse.json({
             user: {
@@ -47,7 +34,8 @@ export async function POST(request: NextRequest) {
                 name: user.name,
                 isAdmin: user.isAdmin,
             },
-            message: "Registration successful",
+            message:
+                "Registration successful. Please check your email to verify your account.",
         });
     } catch (error) {
         console.error("Registration error:", error);

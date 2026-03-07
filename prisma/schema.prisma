@@ -11,8 +11,11 @@ datasource db {
 model User {
   id                  String    @id @default(cuid())
   email               String    @unique
-  password            String
+  password            String?
   name                String?
+  emailVerified       DateTime?
+  googleId            String?   @unique
+  steamId             String?   @unique
   isAdmin             Boolean   @default(false)
   plan                Plan      @default(FREE)
   polarSubscriptionId String?   @unique
@@ -93,4 +96,15 @@ model CustomFilter {
   updatedAt  DateTime @updatedAt
 
   @@map("custom_filters")
+}
+
+model VerificationToken {
+  id         String   @id @default(cuid())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }
