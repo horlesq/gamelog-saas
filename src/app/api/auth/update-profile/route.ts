@@ -21,32 +21,10 @@ export async function PUT(request: NextRequest) {
         const updatedUser = await AuthService.updateUserProfile(
             authUser.userId,
             {
-                email: validatedData.email,
                 newPassword: validatedData.newPassword,
             },
             validatedData.currentPassword,
         );
-
-        // If email changed, update JWT token
-        if (validatedData.email) {
-            const newToken = jwt.sign(
-                {
-                    userId: updatedUser.id,
-                    email: updatedUser.email,
-                    isAdmin: updatedUser.isAdmin,
-                },
-                JWT_SECRET,
-                { expiresIn: "7d" },
-            );
-
-            const cookieStore = await cookies();
-            cookieStore.set("auth-token", newToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax",
-                maxAge: 60 * 60 * 24 * 7, // 7 days
-            });
-        }
 
         return NextResponse.json({
             message: "Profile updated successfully",

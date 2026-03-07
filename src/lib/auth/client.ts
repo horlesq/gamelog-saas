@@ -24,7 +24,7 @@ export async function getCurrentUser() {
 }
 
 export async function updateProfile(profileData: {
-    currentPassword: string;
+    currentPassword?: string;
     email?: string;
     newPassword?: string;
 }) {

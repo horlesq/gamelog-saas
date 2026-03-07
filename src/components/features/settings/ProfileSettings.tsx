@@ -19,7 +19,6 @@ export default function ProfileSettings({
 }: ProfileSettingsProps) {
     const [profileData, setProfileData] = useState<UpdateProfileFormData>({
         currentPassword: "",
-        email: "",
         newPassword: "",
     });
     const [profileLoading, setProfileLoading] = useState(false);
@@ -27,10 +26,9 @@ export default function ProfileSettings({
     const [profileSuccess, setProfileSuccess] = useState("");
 
     // Initialize/Update form data when currentUser changes
+    // Email is no longer updated in state as it's read-only
     useEffect(() => {
-        if (currentUser) {
-            setProfileData((prev) => ({ ...prev, email: currentUser.email }));
-        }
+        // Keeping this hook in case we need to initialize other fields based on currentUser later
     }, [currentUser]);
 
     const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -48,15 +46,6 @@ export default function ProfileSettings({
                 currentPassword: "",
                 newPassword: "",
             }));
-
-            // Notify parent if relevant fields changed
-            if (
-                currentUser &&
-                profileData.email &&
-                profileData.email !== currentUser.email
-            ) {
-                onUserUpdate({ ...currentUser, email: profileData.email });
-            }
         } catch (err) {
             setProfileError(
                 err instanceof Error ? err.message : "Failed to update profile",
@@ -73,7 +62,7 @@ export default function ProfileSettings({
                     Profile Settings
                 </h2>
                 <p className="text-muted-foreground mt-1">
-                    Update your email and password
+                    Update your password
                 </p>
             </div>
 
@@ -83,39 +72,40 @@ export default function ProfileSettings({
                         onSubmit={handleProfileUpdate}
                         className="space-y-4 max-w-full sm:max-w-md"
                     >
-                        <div className="space-y-2">
-                            <Label htmlFor="current-password">
-                                Current Password
-                            </Label>
-                            <Input
-                                id="current-password"
-                                type="password"
-                                value={profileData.currentPassword}
-                                onChange={(e) =>
-                                    setProfileData((prev) => ({
-                                        ...prev,
-                                        currentPassword: e.target.value,
-                                    }))
-                                }
-                                required
-                                className="bg-muted"
-                            />
-                        </div>
+                        {(currentUser?.hasPassword ?? true) && (
+                            <div className="space-y-2">
+                                <Label htmlFor="current-password">
+                                    Current Password
+                                </Label>
+                                <Input
+                                    id="current-password"
+                                    type="password"
+                                    value={profileData.currentPassword || ""}
+                                    onChange={(e) =>
+                                        setProfileData((prev) => ({
+                                            ...prev,
+                                            currentPassword: e.target.value,
+                                        }))
+                                    }
+                                    required={currentUser?.hasPassword ?? true}
+                                    className="bg-muted"
+                                />
+                            </div>
+                        )}
 
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
                                 id="email"
                                 type="email"
-                                value={profileData.email}
-                                onChange={(e) =>
-                                    setProfileData((prev) => ({
-                                        ...prev,
-                                        email: e.target.value,
-                                    }))
-                                }
-                                className="bg-muted"
+                                value={currentUser?.email || ""}
+                                disabled
+                                className="bg-muted opacity-70"
                             />
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Email addresses cannot be changed after
+                                registration.
+                            </p>
                         </div>
 
                         <div className="space-y-2">

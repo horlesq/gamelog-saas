@@ -121,6 +121,7 @@ export class AuthService {
                 isAdmin: true,
                 plan: true,
                 createdAt: true,
+                password: true,
             },
         });
 
@@ -128,7 +129,12 @@ export class AuthService {
             throw new Error("User not found");
         }
 
-        return user;
+        const { password, ...userWithoutPassword } = user;
+
+        return {
+            ...userWithoutPassword,
+            hasPassword: !!password,
+        };
     }
 
     /**
@@ -179,10 +185,9 @@ export class AuthService {
     static async updateUserProfile(
         userId: string,
         data: {
-            email?: string;
             newPassword?: string;
         },
-        currentPassword: string,
+        currentPassword?: string,
     ) {
         // Get current user
         const user = await prisma.user.findUnique({
@@ -195,6 +200,9 @@ export class AuthService {
 
         // Verify current password if user has one
         if (user.password) {
+            if (!currentPassword) {
+                throw new Error("Current password is required");
+            }
             const isValidPassword = await this.verifyPassword(
                 currentPassword,
                 user.password,
@@ -204,21 +212,9 @@ export class AuthService {
             }
         }
 
-        // Check if email is taken by another user
-        if (data.email && data.email !== user.email) {
-            const existingUser = await prisma.user.findUnique({
-                where: { email: data.email },
-            });
-
-            if (existingUser && existingUser.id !== userId) {
-                throw new Error("Email is already in use");
-            }
-        }
-
         // Prepare update data
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const updateData: any = {};
-        if (data.email) updateData.email = data.email;
         if (data.newPassword)
             updateData.password = await this.hashPassword(data.newPassword);
 

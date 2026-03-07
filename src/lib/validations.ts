@@ -38,22 +38,13 @@ export const updateGameLogSchema = z.object({
     completedAt: z.string().optional().nullable(),
 });
 
-export const updateProfileSchema = z
-    .object({
-        currentPassword: z.string().min(1, "Current password is required"),
-        email: z.string().email("Invalid email address").optional(),
-        newPassword: z.preprocess(
-            (val) => (val === "" ? undefined : val),
-            z
-                .string()
-                .min(6, "Password must be at least 6 characters")
-                .optional(),
-        ),
-    })
-    .refine((data) => data.email || data.newPassword, {
-        message: "Either email or new password must be provided",
-        path: ["email"],
-    });
+export const updateProfileSchema = z.object({
+    currentPassword: z.string().optional(),
+    newPassword: z.preprocess(
+        (val) => (val === "" ? undefined : val),
+        z.string().min(6, "Password must be at least 6 characters").optional(),
+    ),
+});
 
 export const createUserSchema = z.object({
     email: z.string().email("Invalid email address"),

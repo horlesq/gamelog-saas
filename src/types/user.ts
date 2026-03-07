@@ -6,6 +6,7 @@ export interface User {
     plan: "FREE" | "PRO" | "ULTRA";
     createdAt: string;
     updatedAt: string;
+    hasPassword?: boolean;
 }
 
 export interface AuthUser {
@@ -29,7 +30,7 @@ export interface CreateUserData {
 }
 
 export interface UpdateProfileFormData {
-    currentPassword: string;
+    currentPassword?: string;
     email?: string;
     newPassword?: string;
 }
