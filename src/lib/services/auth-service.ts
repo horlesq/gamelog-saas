@@ -193,13 +193,15 @@ export class AuthService {
             throw new Error("User not found");
         }
 
-        // Verify current password
-        const isValidPassword = await this.verifyPassword(
-            currentPassword,
-            user.password,
-        );
-        if (!isValidPassword) {
-            throw new Error("Invalid current password");
+        // Verify current password if user has one
+        if (user.password) {
+            const isValidPassword = await this.verifyPassword(
+                currentPassword,
+                user.password,
+            );
+            if (!isValidPassword) {
+                throw new Error("Invalid current password");
+            }
         }
 
         // Check if email is taken by another user
